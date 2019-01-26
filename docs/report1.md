@@ -488,9 +488,9 @@ str(res.plt)
 ##     super:  <ggproto object: Class ScalesList, gg> 
 ##  $ mapping    :List of 2
 ##   ..$ x: language ~expr
-##   .. ..- attr(*, ".Environment")=<environment: 0x1111f2728> 
+##   .. ..- attr(*, ".Environment")=<environment: 0x10efdce08> 
 ##   ..$ y: language ~Time
-##   .. ..- attr(*, ".Environment")=<environment: 0x1111f2728> 
+##   .. ..- attr(*, ".Environment")=<environment: 0x10efdce08> 
 ##   ..- attr(*, "class")= chr "uneval"
 ##  $ theme      :List of 2
 ##   ..$ axis.text.x:List of 11
@@ -565,7 +565,7 @@ str(res.plt)
 ##     train_scales: function
 ##     vars: function
 ##     super:  <ggproto object: Class FacetNull, Facet, gg> 
-##  $ plot_env   :<environment: 0x1111f2728> 
+##  $ plot_env   :<environment: 0x10efdce08> 
 ##  $ labels     :List of 2
 ##   ..$ x: chr "expr"
 ##   ..$ y: chr "Time"
