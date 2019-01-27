@@ -11,7 +11,7 @@ geometry: margin = 1in
 getwd()
 loadd(ninput)
 loadd(ninput2)
-loadd(aves.spp)
+loadd(aves_spp)
 loadd(seeds)
 loadd(aves400.1.gfr.runtime_2017.12.28)
 loadd(aves.all.gfr.runtime_2017.12.29)
@@ -29,24 +29,24 @@ First, we need to get all chronograms available. Using the following functions f
 ```{r}
 install.packages("datelife")
 library(datelife)
-aves.spp <- make_datelife_query(input="Aves", sppfromtaxon=TRUE)
+aves_spp <- make_datelife_query(input="Aves", sppfromtaxon=TRUE)
 # there are 12750 bird spp names
-save("aves.spp", file="data/1_datasource/1_name_samples/aves.spp.RData")
-load("/Users/luna/datelife_benchmark/data/1_datasource/1_name_samples/aves.spp.RData")
-length(aves.spp$cleaned.names)
-aves <- get_datelife_result(input = aves.spp$cleaned.names)
+save(aves_spp, file="data/1_datasource/1_name_samples/aves_spp.RData")
+load("/Users/luna/datelife_benchmark/data/1_datasource/1_name_samples/aves_spp.RData")
+length(aves_spp$cleaned.names)
+aves_dr <- get_datelife_result(input = aves_spp$cleaned.names)
 ```
 Check the structure of the object:
 ```{r}
-length(aves)
-class(aves)
+length(aves_dr)
+class(aves_dr)
 # the largest tree comes from study:
-names(aves)[which.max(sapply(aves, nrow))]
+names(aves_dr)[which.max(sapply(aves_dr, nrow))]
 ```
 Now summarize results of the `datelife` search as a `phylo` object:
 ```{r}
 start_time <- Sys.time() # to register run time
-aves_phylo <- summarize_datelife_result(datelife_query = aves.spp$cleaned.names, datelife_result = aves, summary_format = "phylo_all")
+aves_phylo <- summarize_datelife_result(datelife_query = aves_spp$cleaned.names, datelife_result = aves_dr, summary_format = "phylo_all")
 runtime <- Sys.time() - start_time # end of registering function running time
 attr(aves_phylo, "runtime") <- runtime
 save(aves_phylo, file = "data/0_global/aves_phylo.RData")
@@ -59,15 +59,15 @@ Next step is to generate a sample of chronograms of different size that can be c
 # it might be faster to drop tips from matrix
 unname(sapply(aves, nrow))
 tip_number <- c(10, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 800, 9000)
-mat <- vector(mode = "list", length = length(tip_number))
-length(mat)
+aves_mat <- vector(mode = "list", length = length(tip_number))
+length(aves_mat)
 for(i in seq(tip_number)){
     print(i)
-    taxa <- sample(seq(nrow(aves[[27]])), tip_number[i])
-    mat[[i]] <- aves[[27]][taxa, taxa]
+    taxa <- sample(seq(nrow(aves_dr[[27]])), tip_number[i])
+    aves_mat[[i]] <- aves_dr[[27]][taxa, taxa]
 }
-sapply(mat, nrow)
-trees <- summarize_datelife_result(datelife_result = mat, summary_format = "phylo_all")
+sapply(aves_mat, nrow)
+trees <- summarize_datelife_result(datelife_result = aves_mat, summary_format = "phylo_all")
 plot(tree)
 ```
 Now congruify and date:
