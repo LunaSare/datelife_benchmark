@@ -30,10 +30,4 @@ render_pdf <- function(file_in, file_out, dir, placeholder) {
     system(paste0("pandoc ", file_in, " -o ", file_out))
     setwd(original.dir)
 }
-reqins_pkg <- function(pkg){
-  x <- require(pkg)
-  if(!x){
-    install.packages(pkg)
-    require(pkg)
-  }
-}
+

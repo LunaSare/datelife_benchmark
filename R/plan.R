@@ -1,4 +1,4 @@
-plan <- drake_plan(
+plan_report1 <- drake_plan(
 	ninput = c(10,100,200,300,400,500,700,1000,1500,2000,3000,5000,7000,8000,9000,10000),
 	aves.spp = load_data(path = "data/1_datasource/1_name_samples/", object_name = "aves.spp"),
 	seeds = load_data(path = "data/1_datasource/1_name_samples/", object_name = "seeds"),
@@ -18,7 +18,7 @@ plan <- drake_plan(
 )
 # config <- drake_config(plan)
 # vis_drake_graph(config)
-make(plan)
+make(plan_report1)
 # outdated(config)
 # diagnose(plan)
-readd(aves.spp)
+# readd(aves.spp)
