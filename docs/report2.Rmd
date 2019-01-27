@@ -1,0 +1,76 @@
+---
+title: "datelife R Package Reports"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+author: Luna L. Sanchez Reyes
+output: pdf_document
+fontsize: 12pts
+textalign: left
+geometry: margin = 1in
+---
+```{r setup, include = FALSE, warnings = FALSE, message = FALSE}
+getwd()
+loadd(ninput)
+loadd(ninput2)
+loadd(aves.spp)
+loadd(seeds)
+loadd(aves400.1.gfr.runtime_2017.12.28)
+loadd(aves.all.gfr.runtime_2017.12.29)
+loadd(aves.all.gfr.runtime_2018.01.12)
+loadd(res28)
+loadd(res29)
+loadd(res01)
+loadd(res04)
+```
+# Benchmarking Functions to Generate New Data
+
+To benchmark `datelife`s functions for generation of new data on time of lineage divergence from a tree we chose Birds as model.
+First, we need to get all chronograms available. Using the following functions from `datelife` package:
+
+```{r}
+install.packages("datelife")
+library(datelife)
+aves.spp <- make_datelife_query(input="Aves", sppfromtaxon=TRUE)
+# there are 12750 bird spp names
+save("aves.spp", file="data/1_datasource/1_name_samples/aves.spp.RData")
+load("/Users/luna/datelife_benchmark/data/1_datasource/1_name_samples/aves.spp.RData")
+length(aves.spp$cleaned.names)
+aves <- get_datelife_result(input = aves.spp$cleaned.names)
+```
+Check the structure of the object:
+```{r}
+length(aves)
+class(aves)
+# the largest tree comes from study:
+names(aves)[which.max(sapply(aves, nrow))]
+```
+Now summarize results of the `datelife` search as a `phylo` object:
+```{r}
+start_time <- Sys.time() # to register run time
+aves_phylo <- summarize_datelife_result(datelife_query = aves.spp$cleaned.names, datelife_result = aves, summary_format = "phylo_all")
+runtime <- Sys.time() - start_time # end of registering function running time
+attr(aves_phylo, "runtime") <- runtime
+save(aves_phylo, file = "data/0_global/aves_phylo.RData")
+```
+Summarizing as phylo all bird chronograms took me `r paste(as.character(round(attr(aves_phylo, "runtime"), digits = 2)), attr(attr(aves_phylo, "runtime"), "units"))`
+if the previous does not work, assign aves_phylo runtime to an object inside the plan.
+
+Next step is to generate a sample of chronograms of different size that can be congruified and dated after
+```{r}
+# it might be faster to drop tips from matrix
+unname(sapply(aves, nrow))
+tip_number <- c(10, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 800, 9000)
+mat <- vector(mode = "list", length = length(tip_number))
+length(mat)
+for(i in seq(tip_number)){
+    print(i)
+    taxa <- sample(seq(nrow(aves[[27]])), tip_number[i])
+    mat[[i]] <- aves[[27]][taxa, taxa]
+}
+sapply(mat, nrow)
+trees <- summarize_datelife_result(datelife_result = mat, summary_format = "phylo_all")
+plot(tree)
+```
+Now congruify and date:
+```{r}
+
+```
