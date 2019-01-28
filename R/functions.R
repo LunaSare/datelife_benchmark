@@ -1,5 +1,5 @@
 load_data <- function(path, object_name){
-  load(paste0(path, object_name, ".RData"))
+  load(path)
   object <- get(object_name)
   return(object)
 }
@@ -30,4 +30,3 @@ render_pdf <- function(file_in, file_out, dir, placeholder) {
     system(paste0("pandoc ", file_in, " -o ", file_out))
     setwd(original.dir)
 }
-

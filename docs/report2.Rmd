@@ -9,10 +9,11 @@ geometry: margin = 1in
 ---
 ```{r setup, include = FALSE, warnings = FALSE, message = FALSE}
 getwd()
-loadd(ninput)
-loadd(ninput2)
 loadd(aves_spp)
-loadd(seeds)
+loadd(aves_dr)
+loadd(aves_mat)
+loadd(aves_phylo)
+
 loadd(aves400.1.gfr.runtime_2017.12.28)
 loadd(aves.all.gfr.runtime_2017.12.29)
 loadd(aves.all.gfr.runtime_2018.01.12)
@@ -29,48 +30,88 @@ First, we need to get all chronograms available. Using the following functions f
 ```{r}
 install.packages("datelife")
 library(datelife)
-aves_spp <- make_datelife_query(input="Aves", sppfromtaxon=TRUE)
+aves_spp <- make_datelife_query(input="Aves", get_spp_from_taxon=TRUE)
 # there are 12750 bird spp names
-save(aves_spp, file="data/1_datasource/1_name_samples/aves_spp.RData")
-load("/Users/luna/datelife_benchmark/data/1_datasource/1_name_samples/aves_spp.RData")
-length(aves_spp$cleaned.names)
+save(aves_spp, file="data/0_global/aves_spp.rda")
+names(aves_spp)
+length(aves_spp$cleaned_names)
 aves_dr <- get_datelife_result(input = aves_spp$cleaned.names)
 ```
 Check the structure of the object:
 ```{r}
 length(aves_dr)
 class(aves_dr)
+unname(sapply(aves_dr, nrow))
 # the largest tree comes from study:
 names(aves_dr)[which.max(sapply(aves_dr, nrow))]
+# and has more than 9k tips:
+nrow(aves_dr[[which.max(sapply(aves_dr, nrow))]])
+# save it
+save(aves_dr, file="data/0_global/aves_dr.rda")
 ```
-Now summarize results of the `datelife` search as a `phylo` object:
+<!-- Now summarize results of the `datelife` search as a `phylo` object:
 ```{r}
 start_time <- Sys.time() # to register run time
 aves_phylo <- summarize_datelife_result(datelife_query = aves_spp$cleaned.names, datelife_result = aves_dr, summary_format = "phylo_all")
 runtime <- Sys.time() - start_time # end of registering function running time
 attr(aves_phylo, "runtime") <- runtime
-save(aves_phylo, file = "data/0_global/aves_phylo.RData")
-```
-Summarizing as phylo all bird chronograms took me `r paste(as.character(round(attr(aves_phylo, "runtime"), digits = 2)), attr(attr(aves_phylo, "runtime"), "units"))`
-if the previous does not work, assign aves_phylo runtime to an object inside the plan.
+save(aves_phylo, file = "data/0_global/aves_phylo.rda")
+``` -->
+<!-- Summarizing as phylo all bird chronograms took me `r paste(as.character(round(attr(aves_phylo, "runtime"), digits = 2)), attr(attr(aves_phylo, "runtime"), "units"))`
+if the previous does not work, assign aves_phylo runtime to an object inside the plan. -->
 
-Next step is to generate a sample of chronograms of different size that can be congruified and dated after
+Next step is to generate a sample of chronograms of different size that can be congruified and dated after.
+These are going to be your target chronograms
 ```{r}
-# it might be faster to drop tips from matrix
-unname(sapply(aves, nrow))
-tip_number <- c(10, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 800, 9000)
+# it is much faster to drop tips from matrix:
+tip_number <- c(10, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000)
 aves_mat <- vector(mode = "list", length = length(tip_number))
 length(aves_mat)
 for(i in seq(tip_number)){
     print(i)
-    taxa <- sample(seq(nrow(aves_dr[[27]])), tip_number[i])
-    aves_mat[[i]] <- aves_dr[[27]][taxa, taxa]
+    taxa <- sample(seq(nrow(aves_dr[[which.max(sapply(aves_dr, nrow))]])), tip_number[i])
+    aves_mat[[i]] <- aves_dr[[which.max(sapply(aves_dr, nrow))]][taxa, taxa]
 }
 sapply(aves_mat, nrow)
-trees <- summarize_datelife_result(datelife_result = aves_mat, summary_format = "phylo_all")
-plot(tree)
+save(aves_mat, file="data/0_global/aves_mat.rda")
+# remove large objects so your R session does not collapse
+rm(aves_dr)
+aves_trees <- summarize_datelife_result(datelife_result = aves_mat, summary_format = "phylo_all")
+# this takes so much time, so its better to do it one by one, something like this:
+
+plot(aves_trees)
+class(aves_trees)
+sapply(aves_trees, ape::is.ultrametric,  option = 2)
+# they are all ultrametric
+sapply(aves_trees, ape::is.binary.tree)
+# and also fully dichotomous
+for (i in seq(aves_trees)){
+    save(setNames(aves_trees[[i]], paste0("aves_trees_", tip_number[i])),
+        file = paste0("data/0_global/aves_targets/aves_trees_", tip_number[i], ".rda"))
+}
+save(aves_trees, file="data/0_global/aves_trees.rda")
+rm(aves_trees)
 ```
+Now generate a 25%, 50% and 75% sample of subtrees for congruification
+
+```{r}
+# we will generate a lot of big matrices, so the best approach is to generate and
+# save them each separately with a function
+sample_matrix <- function(samp, aves_mat){
+    for (i in seq(length(aves_mat))){
+        for (j in seq(100)){
+            taxa <- sample(nrow(aves_mat[[i]]), ceiling(nrow(aves_mat[[i]])*samp))
+            mat_name <- paste0("samp", samp*100, "_mat", i, "_", j))
+            save(setNames(aves_mat[[i]][taxa,taxa], mat_name),
+                file = paste0("data/0_global/aves_mat_sample/", mat_name, ".rda"))
+        }
+    }
+}
+sample_matrix(0.25, aves_mat)
+```
+
 Now congruify and date:
+
 ```{r}
 
 ```
