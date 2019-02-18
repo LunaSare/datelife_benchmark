@@ -23,8 +23,15 @@ loadd(res01)
 loadd(res04)
 ```
 # Benchmarking Functions to Generate New Data
+Again, you'll need to install and load `datelife` and `microbenchmark` packages:
+```{r eval = FALSE}
+install.packages("microbenchmark")
+install.packages("datelife")
+library(microbenchmark)
+library(datelife)
+```
 
-To benchmark `datelife`s functions for generation of new data on time of lineage divergence from a tree we chose Birds as model.
+To benchmark `datelife`s functions for generation of new data on time of lineage divergence we chose birds as model.
 First, we need to get all chronograms available. Using the following functions from `datelife` package:
 
 ```{r}
