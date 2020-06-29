@@ -9,8 +9,5 @@ You can install it and run all the tests on your computer with:
 ``` r
 install.packages("devtools")
 library(devtools)
-install_github("LunsaSare/datelife_benchmark")
+install_github("LunaSare/datelife_benchmark")
 ```
-
-
-
